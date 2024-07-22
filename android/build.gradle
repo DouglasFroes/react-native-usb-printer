@@ -106,6 +106,9 @@ repositories {
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
+  androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
+      exclude group: 'com.android.support', module: 'support-annotations'
+  })
   // For < 0.71, this will be from the local maven repo
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
