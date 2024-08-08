@@ -1,11 +1,5 @@
 import * as EPToolkit from './EPToolkit';
-
-export interface PrinterOptions {
-  beep?: boolean;
-  cut?: boolean;
-  tailingLine?: boolean;
-  encoding?: string;
-}
+import type { PrinterOptions } from './types';
 
 export const textTo64Buffer = (text: string, opts: PrinterOptions) => {
   const defaultOptions = {

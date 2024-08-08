@@ -7,7 +7,6 @@ import {
   ScrollView,
 } from 'react-native';
 import {
-  multiply,
   init,
   getDeviceList,
   connect,
@@ -17,8 +16,6 @@ import {
 import type { IPrinter } from '../../src/utils/types';
 import { COMMANDS } from '../../src/utils/commands';
 import { height, width } from './dimensions';
-
-const result = multiply(3, 7);
 
 const BOLD_ON = COMMANDS.TEXT_FORMAT.TXT_BOLD_ON;
 const BOLD_OFF = COMMANDS.TEXT_FORMAT.TXT_BOLD_OFF;
@@ -79,7 +76,6 @@ export default function App() {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text>Result: {result}</Text>
         <TouchableOpacity onPress={() => init()} style={styles.bt}>
           <Text>Init</Text>
         </TouchableOpacity>
@@ -126,6 +122,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: height,
     width: width,
+    backgroundColor: 'white',
   },
   box: {
     width: 60,
