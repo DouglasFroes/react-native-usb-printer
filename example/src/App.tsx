@@ -12,10 +12,15 @@ import {
   connect,
   onBill,
   onText,
+  close,
+  printCut,
+  printImageBase64,
+  printImageURL,
 } from 'react-native-usb-printer';
 import type { IPrinter } from '../../src/utils/types';
 import { COMMANDS } from '../../src/utils/commands';
 import { height, width } from './dimensions';
+import { img64 } from './img64';
 
 const BOLD_ON = COMMANDS.TEXT_FORMAT.TXT_BOLD_ON;
 const BOLD_OFF = COMMANDS.TEXT_FORMAT.TXT_BOLD_OFF;
@@ -44,6 +49,7 @@ export default function App() {
   function get() {
     const deviceList = getDeviceList();
     setPrinterList(deviceList);
+    setText('Device List, total: ' + deviceList.length);
   }
 
   function connectPrinter() {
@@ -54,6 +60,11 @@ export default function App() {
     } else {
       setText('Select a printer first');
     }
+  }
+
+  function disconnect() {
+    close();
+    setText('Printer disconnected');
   }
 
   async function printText() {
@@ -71,6 +82,36 @@ export default function App() {
     const aa = await onBill('\n Hello World \n', { beep: true });
 
     setText(aa);
+  }
+
+  async function printImage() {
+    const img = 'https://avatars.githubusercontent.com/u/123817130';
+
+    const result = await printImageURL(img, {
+      imageWidth: 150,
+      imageHeight: 150,
+      beep: true,
+      cut: true,
+      tailingLine: true,
+    });
+
+    setText(result);
+  }
+
+  async function printImage64() {
+    const result = await printImageBase64(img64, {
+      imageWidth: 150,
+      imageHeight: 150,
+      beep: true,
+      cut: true,
+    });
+
+    setText(result);
+  }
+
+  async function onPrintCut() {
+    const result = await printCut(true, true);
+    setText(result);
   }
 
   return (
@@ -91,6 +132,22 @@ export default function App() {
         <TouchableOpacity onPress={printBill} style={styles.bt}>
           <Text>Print Bill</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={printImage} style={styles.bt}>
+          <Text>Print Image</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={printImage64} style={styles.bt}>
+          <Text>Print Image 64</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onPrintCut} style={styles.bt}>
+          <Text>Print Cut</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={disconnect} style={styles.bt}>
+          <Text>Disconnect</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setText('')} style={styles.bt}>
+          <Text>Clear</Text>
+        </TouchableOpacity>
+
         <Text style={styles.tex}>{text}</Text>
         <View>
           {printerList.map((i, index) => (
