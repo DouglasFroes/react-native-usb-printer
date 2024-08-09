@@ -1,6 +1,6 @@
 {
   "name": "@dsf/react-native-usb-printer",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "native printer usb",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
