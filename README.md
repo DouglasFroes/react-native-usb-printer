@@ -1,18 +1,18 @@
-# @dsf/react-native-usb-printer
+# react-native-usb-printed
 
 native printer usb
 
 ## Installation
 
 ```sh
-npm install @dsf/react-native-usb-printer
+npm install react-native-usb-printed
 ```
 
 ## Usage
 
 
 ```js
-import { multiply } from '@dsf/react-native-usb-printer';
+import { multiply } from 'react-native-usb-printed';
 
 // ...
 

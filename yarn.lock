@@ -1918,9 +1918,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dsf/react-native-usb-printer@workspace:.":
+"react-native-usb-printed@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@dsf/react-native-usb-printer@workspace:."
+  resolution: "react-native-usb-printed@workspace:."
   dependencies:
     "@commitlint/config-conventional": ^17.0.2
     "@evilmartians/lefthook": ^1.5.0

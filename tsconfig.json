@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "@dsf/react-native-usb-printer": [
+      "react-native-usb-printed": [
         "./src/index"
       ]
     },

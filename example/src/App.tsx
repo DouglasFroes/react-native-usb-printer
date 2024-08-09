@@ -16,7 +16,7 @@ import {
   printCut,
   printImageBase64,
   printImageURL,
-} from '@dsf/react-native-usb-printer';
+} from 'react-native-usb-printed';
 import type { IPrinter } from '../../src/utils/types';
 import { COMMANDS } from '../../src/utils/commands';
 import { height, width } from './dimensions';
