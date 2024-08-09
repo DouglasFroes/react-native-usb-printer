@@ -169,17 +169,18 @@ public class USBPrinterAdapter implements PrinterAdapter {
         closeConnectionIfExists();
 
         if (mUSBManager.getDeviceList().size() == 0) {
-            return "failed to find device with vendor_id: " + usbPrinterDeviceId.getVendorId() + " product_id: " + usbPrinterDeviceId.getProductId();
+            return "No device found";
         }
 
         boolean deviceFound = false;
 
         for (UsbDevice usbDevice : mUSBManager.getDeviceList().values()) {
-            if (usbDevice.getVendorId() == usbPrinterDeviceId.getVendorId() && usbDevice.getProductId() == usbPrinterDeviceId.getProductId()) {
-                if (!mUSBManager.hasPermission(usbDevice)) {
-                    mUSBManager.requestPermission(usbDevice, mPermissionIndent);
-                    deviceFound = true;
-                }
+            if (
+              usbDevice.getVendorId() == usbPrinterDeviceId.getVendorId() &&
+              usbDevice.getProductId() == usbPrinterDeviceId.getProductId()
+              ) {
+                mUSBManager.requestPermission(usbDevice, mPermissionIndent);
+                deviceFound = true;
             }
         }
 
@@ -197,7 +198,7 @@ public class USBPrinterAdapter implements PrinterAdapter {
         }
 
         if (mUsbDeviceConnection != null) {
-            return true;
+          return true;
         }
 
         UsbInterface usbInterface = null;
@@ -263,8 +264,8 @@ public class USBPrinterAdapter implements PrinterAdapter {
         } else {
             String msg = "failed to connected to device";
             Log.v(LOG_TAG, msg);
-            sendEvent(msg);
             promise.reject(msg);
+            sendEvent(msg);
         }
     }
 

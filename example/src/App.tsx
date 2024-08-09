@@ -16,7 +16,7 @@ import {
   printCut,
   printImageBase64,
   printImageURL,
-} from 'react-native-usb-printer';
+} from '@dsf/react-native-usb-printer';
 import type { IPrinter } from '../../src/utils/types';
 import { COMMANDS } from '../../src/utils/commands';
 import { height, width } from './dimensions';
@@ -44,6 +44,10 @@ export default function App() {
 
   useEffect(() => {
     init();
+
+    return () => {
+      close();
+    };
   }, []);
 
   function get() {
