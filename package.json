@@ -1,7 +1,7 @@
 {
   "name": "@dsf/react-native-usb-printer",
   "version": "0.1.2",
-  "description": "native printer usb",
+  "description": "React Native module to print on USB thermal printers",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
