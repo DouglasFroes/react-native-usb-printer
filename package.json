@@ -1,6 +1,6 @@
 {
   "name": "react-native-usb-printed",
-  "version": "0.2.1",
+  "version": "0.2.101",
   "description": "React Native module to print on USB thermal printers",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -13,9 +13,9 @@
       "require": "./lib/commonjs/index.js"
     },
     "./utils": {
-      "types": "./lib/typescript/src/utils/*.d.ts",
-      "import": "./lib/module/utils/*.js",
-      "require": "./lib/commonjs/utils/*.js"
+      "types": "./lib/typescript/src/utils/index.d.ts",
+      "import": "./lib/module/utils/index.js",
+      "require": "./lib/commonjs/utils/index.js"
     }
   },
   "files": [
