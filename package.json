@@ -188,5 +188,8 @@
     "type": "module-new",
     "languages": "kotlin-objc",
     "version": "0.38.2"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.6.3"
   }
 }
