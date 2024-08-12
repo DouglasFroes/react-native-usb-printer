@@ -11,6 +11,11 @@
       "types": "./lib/typescript/src/index.d.ts",
       "import": "./lib/module/index.js",
       "require": "./lib/commonjs/index.js"
+    },
+    "./utils": {
+      "types": "./lib/typescript/src/utils/*.d.ts",
+      "import": "./lib/module/utils/*.js",
+      "require": "./lib/commonjs/utils/*.js"
     }
   },
   "files": [
