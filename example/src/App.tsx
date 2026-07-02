@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -113,6 +114,10 @@ export default function App() {
     null
   );
 
+  const [textToPrint, setTextToPrint] = useState<string>('Hello, World!');
+  const [htmlToPrint, setHtmlToPrint] = useState<string>('');
+  const [htmlToHeight, setHtmlToHeight] = useState<string>('350');
+
   const refreshDevices = async () => {
     setLoading(true);
     try {
@@ -175,7 +180,7 @@ export default function App() {
     setLoading(true);
     try {
       const result = await barCode({
-        text: '123456789012',
+        text: textToPrint,
         width: 2,
         height: 80,
         productId: selectedProductId,
@@ -198,7 +203,7 @@ export default function App() {
     setLoading(true);
     try {
       const result = await qrCode({
-        text: 'https://reactnative.dev',
+        text: textToPrint,
         size: 6,
         productId: selectedProductId,
         align: 'center',
@@ -275,24 +280,52 @@ export default function App() {
   };
 
   const handlePrintHtml = async () => {
+    const html =
+      htmlToPrint ||
+      `<!DOCTYPE html>
+<html lang="pt-br">
+<body style="font-family: monospace; margin: 0; padding: 0; background: #fff;">
+    <div style="width: 100%; text-align: center; color: #000; font-size: 22px; font-weight: bold; margin-bottom: 8px; letter-spacing: 2px;">
+      Estacionamento
+    </div>
+    <div style="border-top: 1px dashed #000; margin: 8px 0 8px 0;"></div>
+    <div style="width: 100%; text-align: left; font-size: 15px; margin-bottom: 4px;">
+      <div style="display: flex; justify-content: space-between; color: #000;">
+        <span><b>Ticket:</b> ${Date.now()}</span>
+      </div>
+     </div>
+    <div style="border-top: 1px dashed #000; margin: 8px 0 8px 0;"></div>
+    <div style="width: 100%; text-align: left; font-size: 15px; margin-bottom: 4px; color: #000;">
+      <div><b>Tipo de Pagamento:</b>PIX / Dinheiro</div>
+    </div>
+    <div style="border-top: 1px dashed #000; margin: 8px 0 8px 0;"></div>
+    <div style="width: 100%; text-align: right; font-size: 18px; font-weight: bold; margin-bottom: 4px; color: #000;">
+      Valor Carro: R$ $15,00
+    </div>
+    <div style="width: 100%; text-align: right; font-size: 18px; font-weight: bold; margin-bottom: 4px; color: #000;">
+      Valor Moto: R$ $10,00
+    </div>
+    <div style="width: 100%; text-align: right; font-size: 13px; margin-bottom: 4px; color: #000;">
+      Data: ${new Date().toLocaleDateString('pt-BR')}
+    </div>
+    <div style="border-top: 1px dashed #000; margin: 12px 0 8px 0;"></div>
+    <div style="width: 100%; text-align: center; font-size: 14px; margin-top: 10px; letter-spacing: 1px; color: #000;">
+      ********** OBRIGADO **********<br/>
+    </div>
+  </body>
+</html>
+`;
+
     if (selectedProductId == null) {
       setPrintResult('Selecione um dispositivo para HTML.');
       return;
     }
     setLoading(true);
     try {
-      const html = `<div style="text-align: center; font-family: Arial, sans-serif;">
-        <h1>Impressão HTML</h1>
-        <p>Este é um exemplo de impressão HTML com React Native USB Printer.</p>
-        <p style="font-size: 20px; color: #1976d2;">Texto centralizado</p>
-        <img src="https://avatars.githubusercontent.com/u/194425997" alt="Logo" style="width: 100px; height: 100px; margin: 10px 0;" />
-        <p style="font-size: 16px; color: #666;">Você pode usar estilos CSS para formatar o conteúdo.</p>
-        </div>`;
-
       const result = await printHtml({
         html,
         align: 'center',
-        htmlHeight: 760,
+        htmlHeight: parseInt(htmlToHeight, 10) || 350,
         productId: selectedProductId,
       });
       setPrintResult(
@@ -343,7 +376,42 @@ export default function App() {
           <ActivityIndicator size="large" color="#1976d2" />
         </View>
       )}
+
       <Text style={styles.title}>Impressora USB</Text>
+
+      {/* Inputs for custom text and HTML */}
+      <View style={styles.containerBlock}>
+        <Text style={styles.inputLabel}>Texto para imprimir</Text>
+        <TextInput
+          style={styles.textInput}
+          value={textToPrint}
+          onChangeText={setTextToPrint}
+          placeholder="Digite o texto a ser impresso"
+          returnKeyType="done"
+        />
+        <Text style={styles.inputLabel}>Altura do HTML</Text>
+        <TextInput
+          style={styles.textInput}
+          value={htmlToHeight}
+          onChangeText={setHtmlToHeight}
+          placeholder="Digite a altura do HTML"
+          keyboardType="numeric"
+          returnKeyType="done"
+        />
+      </View>
+
+      <View style={styles.containerBlock}>
+        <Text style={styles.inputLabel}>HTML para imprimir</Text>
+        <TextInput
+          style={styles.htmlInput}
+          value={htmlToPrint}
+          onChangeText={setHtmlToPrint}
+          placeholder="Cole o HTML que será impresso"
+          multiline
+          textAlignVertical="top"
+        />
+      </View>
+
       <View style={styles.buttonRow}>
         <AppButton
           title={loading ? 'Buscando...' : 'Buscar USB'}
@@ -398,6 +466,7 @@ export default function App() {
           {printResult}
         </Text>
       )}
+
       <ScrollView
         horizontal
         style={styles.deviceList}
@@ -562,5 +631,31 @@ const styles = StyleSheet.create({
   selectButtonWrapper: {
     marginTop: 10,
     alignItems: 'flex-end',
+  },
+  textInput: {
+    width: '100%',
+    height: 44,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#cfd8dc',
+    backgroundColor: '#fff',
+  },
+  htmlInput: {
+    width: '100%',
+    height: 160,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#cfd8dc',
+    backgroundColor: '#fff',
+  },
+  containerBlock: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  inputLabel: {
+    marginBottom: 6,
+    fontWeight: '600',
   },
 });

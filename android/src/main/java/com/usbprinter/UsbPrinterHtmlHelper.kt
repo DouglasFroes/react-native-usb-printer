@@ -53,6 +53,15 @@ object UsbPrinterHtmlHelper {
                             latch.countDown()
                         }, 500) // Pequeno delay para garantir renderização
                     }
+
+                    override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+                        latch.countDown()
+                    }
+
+                    @android.annotation.TargetApi(android.os.Build.VERSION_CODES.M)
+                    override fun onReceivedError(view: WebView?, request: android.webkit.WebResourceRequest?, error: android.webkit.WebResourceError?) {
+                        latch.countDown()
+                    }
                 }
                 webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
             } catch (e: Exception) {
@@ -60,7 +69,11 @@ object UsbPrinterHtmlHelper {
             }
         }
 
-        latch.await()
+        // Aguarda no máximo 10 segundos pela renderização do HTML para evitar bloqueio eterno da fila
+        val success = latch.await(10, java.util.concurrent.TimeUnit.SECONDS)
+        if (!success) {
+            Log.e(TAG, "HTML rendering timed out after 10 seconds")
+        }
 
         val bitmap = bitmapHolder[0]
         if (bitmap != null) {
@@ -69,7 +82,7 @@ object UsbPrinterHtmlHelper {
         } else {
             Log.e(TAG, "Failed to render HTML to bitmap")
             result.putBoolean("success", false)
-            result.putString("message", "Erro ao renderizar HTML para bitmap.")
+            result.putString("message", "Erro ao renderizar HTML para bitmap (Timeout ou Falha de Renderização).")
             return result
         }
     }

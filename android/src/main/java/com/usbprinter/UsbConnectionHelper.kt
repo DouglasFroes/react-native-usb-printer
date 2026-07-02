@@ -21,52 +21,72 @@ object UsbConnectionHelper {
 
     /**
      * Estabelece conexão robusta com impressora térmica USB.
-     * Tenta todas as interfaces e endpoints OUT disponíveis.
+     * Tenta todas as interfaces e endpoints OUT disponíveis, com até 3 tentativas.
      */
     fun establishPrinterConnection(context: Context, device: UsbDevice): ConnectionData? {
         val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
+        var connection: UsbDeviceConnection? = null
+        val maxRetries = 3
 
-        try {
-            val connection = usbManager.openDevice(device) ?: run {
-                Log.e(TAG, "Failed to open USB device for thermal printer")
-                return null
-            }
+        for (attempt in 1..maxRetries) {
+            try {
+                connection = usbManager.openDevice(device)
+                if (connection == null) {
+                    Log.w(TAG, "Failed to open USB device (attempt $attempt/$maxRetries)")
+                    if (attempt < maxRetries) {
+                        Thread.sleep(150)
+                        continue
+                    }
+                    return null
+                }
 
-            Log.d(TAG, "Attempting to connect to thermal printer with ${device.interfaceCount} interfaces")
+                Log.d(TAG, "Attempting to connect to thermal printer with ${device.interfaceCount} interfaces (attempt $attempt)")
 
-            // Tenta várias interfaces para máxima compatibilidade
-            for (interfaceIndex in 0 until device.interfaceCount) {
-                val usbInterface = device.getInterface(interfaceIndex)
-                Log.d(TAG, "Trying interface $interfaceIndex with ${usbInterface.endpointCount} endpoints")
+                // Tenta várias interfaces para máxima compatibilidade
+                for (interfaceIndex in 0 until device.interfaceCount) {
+                    val usbInterface = device.getInterface(interfaceIndex)
+                    Log.d(TAG, "Trying interface $interfaceIndex with ${usbInterface.endpointCount} endpoints")
 
-                // Procura endpoint OUT para impressão
-                for (endpointIndex in 0 until usbInterface.endpointCount) {
-                    val endpoint = usbInterface.getEndpoint(endpointIndex)
-                    if (endpoint.direction == android.hardware.usb.UsbConstants.USB_DIR_OUT) {
-                        Log.d(TAG, "Found OUT endpoint at interface $interfaceIndex")
+                    // Procura endpoint OUT para impressão
+                    for (endpointIndex in 0 until usbInterface.endpointCount) {
+                        val endpoint = usbInterface.getEndpoint(endpointIndex)
+                        if (endpoint.direction == android.hardware.usb.UsbConstants.USB_DIR_OUT) {
+                            Log.d(TAG, "Found OUT endpoint at interface $interfaceIndex")
 
-                        if (connection.claimInterface(usbInterface, true)) {
-                            Log.i(TAG, "Successfully claimed interface for thermal printer")
+                            if (connection.claimInterface(usbInterface, true)) {
+                                Log.i(TAG, "Successfully claimed interface for thermal printer on attempt $attempt")
 
-                            // Envia comando de inicialização ESC @
-                            initializePrinter(connection, endpoint)
+                                // Envia comando de inicialização ESC @
+                                initializePrinter(connection, endpoint)
 
-                            return ConnectionData(connection, endpoint, usbInterface)
-                        } else {
-                            Log.w(TAG, "Failed to claim interface $interfaceIndex")
+                                return ConnectionData(connection, endpoint, usbInterface)
+                            } else {
+                                Log.w(TAG, "Failed to claim interface $interfaceIndex")
+                            }
                         }
                     }
                 }
+
+                // Se falhou em encontrar ou fazer claim
+                Log.e(TAG, "No suitable interface found or claimed (attempt $attempt/$maxRetries)")
+                connection.close()
+                connection = null
+                if (attempt < maxRetries) {
+                    Thread.sleep(150)
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error establishing connection to thermal printer (attempt $attempt/$maxRetries)", e)
+                try {
+                    connection?.close()
+                } catch (_: Exception) {}
+                connection = null
+                if (attempt < maxRetries) {
+                    Thread.sleep(150)
+                }
             }
-
-            Log.e(TAG, "No suitable interface found for thermal printer")
-            connection.close()
-            return null
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error establishing connection to thermal printer", e)
-            return null
         }
+        return null
     }
 
     /**
@@ -76,7 +96,7 @@ object UsbConnectionHelper {
         try {
             Log.d(TAG, "Initializing thermal printer with ESC @")
             val initCommand = byteArrayOf(0x1B, 0x40) // ESC @ - Reset completo
-            val bytesTransferred = connection.bulkTransfer(endpoint, initCommand, initCommand.size, 3000)
+            val bytesTransferred = connection.bulkTransfer(endpoint, initCommand, initCommand.size, 1500) // Reduzido de 3000 para 1500ms
             if (bytesTransferred >= 0) {
                 Thread.sleep(100) // Aguarda processamento do reset
                 Log.d(TAG, "Thermal printer initialized successfully")
@@ -96,7 +116,7 @@ object UsbConnectionHelper {
      */
     fun sendDataInChunks(connection: UsbDeviceConnection, endpoint: UsbEndpoint, data: ByteArray): Boolean {
         try {
-            val chunkSize = 64 // Tamanho pequeno para máxima compatibilidade
+            val chunkSize = 1024 // Aumentado de 64 para 1024 para melhor desempenho
             var offset = 0
 
             Log.d(TAG, "Sending ${data.size} bytes to thermal printer in chunks of $chunkSize")
@@ -106,7 +126,7 @@ object UsbConnectionHelper {
                 val currentChunkSize = minOf(chunkSize, remainingBytes)
                 val chunk = data.copyOfRange(offset, offset + currentChunkSize)
 
-                val bytesTransferred = connection.bulkTransfer(endpoint, chunk, chunk.size, 5000)
+                val bytesTransferred = connection.bulkTransfer(endpoint, chunk, chunk.size, 2000) // Reduzido de 5000 para 2000ms
                 if (bytesTransferred < 0) {
                     Log.e(TAG, "Failed to transfer chunk at offset $offset to thermal printer")
                     return false
@@ -115,9 +135,9 @@ object UsbConnectionHelper {
                 Log.v(TAG, "Sent chunk of $currentChunkSize bytes (offset: $offset)")
                 offset += currentChunkSize
 
-                // Delay entre chunks para impressoras térmicas
+                // Delay curto entre chunks para impressoras térmicas
                 if (offset < data.size) {
-                    Thread.sleep(10)
+                    Thread.sleep(5)
                 }
             }
 

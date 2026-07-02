@@ -36,76 +36,31 @@ object UsbDevicePermissionChecker {
                 PendingIntent.FLAG_IMMUTABLE
             )
             val filter = IntentFilter(ACTION_USB_PERMISSION)
-            context.registerReceiver(object : BroadcastReceiver() {
+            val receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     if (intent?.action == ACTION_USB_PERMISSION) {
-                        context?.unregisterReceiver(this)
+                        try {
+                            context?.unregisterReceiver(this)
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Error unregistering receiver", e)
+                        }
                         Log.d(TAG, "Permission response received")
                     }
                 }
-            }, filter)
+            }
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+                } else {
+                    context.registerReceiver(receiver, filter)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error registering receiver", e)
+            }
             usbManager.requestPermission(device, permissionIntent)
             return null
         }
 
-        // Verifica se o dispositivo é acessível
-        if (isDeviceAccessible(context, device)) {
-            Log.d(TAG, "Device is accessible and ready")
-            return device
-        } else {
-            Log.w(TAG, "Device has permission but is not accessible")
-            return null
-        }
-    }
-
-    private fun isDeviceAccessible(context: Context, device: UsbDevice): Boolean {
-        val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
-        var connection: UsbDeviceConnection? = null
-
-        try {
-            connection = usbManager.openDevice(device)
-            if (connection == null) {
-                Log.w(TAG, "Failed to open device connection")
-                return false
-            }
-
-            // Verifica se há interfaces disponíveis
-            if (device.interfaceCount == 0) {
-                Log.w(TAG, "Device has no interfaces")
-                return false
-            }
-
-            // Tenta encontrar uma interface com endpoint OUT para impressão
-            for (interfaceIndex in 0 until device.interfaceCount) {
-                val usbInterface = device.getInterface(interfaceIndex)
-                Log.d(TAG, "Checking interface $interfaceIndex with ${usbInterface.endpointCount} endpoints")
-
-                for (endpointIndex in 0 until usbInterface.endpointCount) {
-                    val endpoint = usbInterface.getEndpoint(endpointIndex)
-                    if (endpoint.direction == android.hardware.usb.UsbConstants.USB_DIR_OUT) {
-                        Log.d(TAG, "Found OUT endpoint - device should work for printing")
-
-                        // Testa se consegue fazer claim da interface
-                        if (connection.claimInterface(usbInterface, true)) {
-                            connection.releaseInterface(usbInterface)
-                            return true
-                        }
-                    }
-                }
-            }
-
-            Log.w(TAG, "No suitable interface/endpoint found for printing")
-            return false
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking device accessibility", e)
-            return false
-        } finally {
-            try {
-                connection?.close()
-            } catch (e: Exception) {
-                Log.w(TAG, "Error closing test connection", e)
-            }
-        }
+        return device
     }
 }

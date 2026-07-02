@@ -78,9 +78,12 @@ object UtilsImage {
         val width = image.width
         val height = image.height
         val result = Array(height) { IntArray(width) }
+        val flatPixels = IntArray(width * height)
+        image.getPixels(flatPixels, 0, width, 0, 0, width, height)
         for (row in 0 until height) {
+            val offset = row * width
             for (col in 0 until width) {
-                result[row][col] = getRGB(image, col, row)
+                result[row][col] = flatPixels[offset + col] or (0xFF shl 24)
             }
         }
         return result
