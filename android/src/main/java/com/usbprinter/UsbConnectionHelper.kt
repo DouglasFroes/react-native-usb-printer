@@ -90,19 +90,32 @@ object UsbConnectionHelper {
     }
 
     /**
-     * Inicializa a impressora com comando ESC @ (reset).
+     * Inicializa a impressora com comandos de recuperação e ESC @ (reset).
+     * Envia comandos de tempo real para destravar a impressora caso ela esteja aguardando dados.
      */
     fun initializePrinter(connection: UsbDeviceConnection, endpoint: UsbEndpoint): Boolean {
         try {
-            Log.d(TAG, "Initializing thermal printer with ESC @")
-            val initCommand = byteArrayOf(0x1B, 0x40) // ESC @ - Reset completo
-            val bytesTransferred = connection.bulkTransfer(endpoint, initCommand, initCommand.size, 1500) // Reduzido de 3000 para 1500ms
+            Log.d(TAG, "Initializing thermal printer with unfreeze sequence and ESC @")
+            
+            // Sequência de destravamento de hardware:
+            // 1. DLE ENQ 2 (0x10, 0x05, 0x02) -> Recuperação em tempo real e limpa buffer
+            // 2. DLE ENQ 1 (0x10, 0x05, 0x01) -> Recuperação em tempo real de erro
+            // 3. CAN (0x18) -> Cancela dados de impressão anteriores (evita que o parser fique preso)
+            // 4. ESC @ (0x1B, 0x40) -> Inicializa a impressora (Reset padrão)
+            val initCommand = byteArrayOf(
+                0x10, 0x05, 0x02,
+                0x10, 0x05, 0x01,
+                0x18,
+                0x1B, 0x40
+            )
+            
+            val bytesTransferred = connection.bulkTransfer(endpoint, initCommand, initCommand.size, 1500)
             if (bytesTransferred >= 0) {
-                Thread.sleep(100) // Aguarda processamento do reset
-                Log.d(TAG, "Thermal printer initialized successfully")
+                Thread.sleep(150) // Pequeno delay adicional para processar a sequência
+                Log.d(TAG, "Thermal printer initialized and unfrozen successfully")
                 return true
             } else {
-                Log.w(TAG, "Failed to send initialization command to thermal printer")
+                Log.w(TAG, "Failed to send initialization/unfreeze command to thermal printer")
                 return false
             }
         } catch (e: Exception) {

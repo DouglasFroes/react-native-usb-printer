@@ -252,6 +252,28 @@ class UsbPrinterModule(reactContext: ReactApplicationContext) :
     }
   }
 
+  override fun getErrorLogs(promise: Promise) {
+    printerExecutor.execute {
+      try {
+        val logs = Logger.getErrorLogs(reactApplicationContext)
+        promise.resolve(logs)
+      } catch (e: Exception) {
+        promise.reject("LOGGER_ERROR", e.localizedMessage)
+      }
+    }
+  }
+
+  override fun clearErrorLogs(promise: Promise) {
+    printerExecutor.execute {
+      try {
+        val success = Logger.clearErrorLogs(reactApplicationContext)
+        promise.resolve(success)
+      } catch (e: Exception) {
+        promise.reject("LOGGER_ERROR", e.localizedMessage)
+      }
+    }
+  }
+
   companion object {
     const val NAME = "UsbPrinter"
   }

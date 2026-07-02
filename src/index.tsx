@@ -70,3 +70,11 @@ export async function printHtml(
 export async function reset(productId: number) {
   return UsbPrinter.reset(productId);
 }
+
+export async function getErrorLogs() {
+  return UsbPrinter.getErrorLogs();
+}
+
+export async function clearErrorLogs() {
+  return UsbPrinter.clearErrorLogs();
+}

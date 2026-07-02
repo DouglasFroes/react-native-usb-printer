@@ -80,6 +80,8 @@ export interface Spec extends TurboModule {
   printImageUri(options: PrintImageUriOptions): Promise<PrinterResult>;
   printHtml(options: PrintHtmlOptions): Promise<PrinterResult>;
   reset(productId: number): Promise<PrinterResult>;
+  getErrorLogs(): Promise<string>;
+  clearErrorLogs(): Promise<boolean>;
 }
 
 const UsbPrinter = TurboModuleRegistry.getEnforcing<Spec>('UsbPrinter');

@@ -23,6 +23,7 @@ object UsbPrinterTextHelper {
 
         val connectionData = UsbConnectionHelper.establishPrinterConnection(context, device)
         if (connectionData == null) {
+            Logger.logError(context, TAG, "Falha ao estabelecer conexao USB para texto")
             return UsbConnectionHelper.createErrorResponse("Falha ao conectar com a impressora")
         }
 
@@ -79,7 +80,7 @@ object UsbPrinterTextHelper {
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error printing text", e)
+            Logger.logError(context, TAG, "Error printing text", e)
             return UsbConnectionHelper.createErrorResponse("Erro ao imprimir: ${e.localizedMessage}")
         } finally {
             UsbConnectionHelper.closeConnection(connectionData)

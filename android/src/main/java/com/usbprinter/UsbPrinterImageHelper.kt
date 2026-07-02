@@ -99,6 +99,7 @@ object UsbPrinterImageHelper {
         // Estabelece a conexão usando o Helper unificado
         val connectionData = UsbConnectionHelper.establishPrinterConnection(context, device)
         if (connectionData == null) {
+            Logger.logError(context, TAG, "Falha ao conectar com a impressora para imagem")
             result.putBoolean("success", false)
             result.putString("message", "Falha ao conectar com a impressora para imagem")
             return result
@@ -167,7 +168,7 @@ object UsbPrinterImageHelper {
                 result.putString("message", "Falha ao enviar os dados da imagem.")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error printing image", e)
+            Logger.logError(context, TAG, "Error printing image", e)
             result.putBoolean("success", false)
             result.putString("message", "Erro ao imprimir imagem: ${e.localizedMessage}")
         } finally {

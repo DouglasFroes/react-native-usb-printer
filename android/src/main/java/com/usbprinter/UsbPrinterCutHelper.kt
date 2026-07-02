@@ -13,6 +13,7 @@ object UsbPrinterCutHelper {
 
         val connectionData = UsbConnectionHelper.establishPrinterConnection(context, device)
         if (connectionData == null) {
+            Logger.logError(context, TAG, "Falha ao conectar com a impressora para corte")
             return UsbConnectionHelper.createErrorResponse("Falha ao conectar com a impressora para corte")
         }
 
@@ -54,7 +55,7 @@ object UsbPrinterCutHelper {
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Erro ao realizar corte: ${e.message}", e)
+            Logger.logError(context, TAG, "Erro ao realizar corte", e)
             return UsbConnectionHelper.createErrorResponse("Erro ao cortar: ${e.localizedMessage}")
         } finally {
             UsbConnectionHelper.closeConnection(connectionData)
