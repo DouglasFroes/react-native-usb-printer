@@ -88,6 +88,21 @@ await printCut(true, true, productId); // cut, beep, productId
 await reset(productId);
 ```
 
+### Debugging & Error Logs
+
+The library includes a built-in persistent error logger on Android to help diagnose connection, formatting, or hardware issues in production. Logs are saved securely inside the app's private internal storage (`usb_printer_errors.log`) with precise timestamps and full exception stack traces.
+
+```js
+import { getErrorLogs, clearErrorLogs } from 'react-native-printer-usb';
+
+// Retrieve all accumulated error logs as a string
+const logs = await getErrorLogs();
+console.log(logs);
+
+// Clear the accumulated logs file
+const success = await clearErrorLogs();
+```
+
 ## Options Reference
 
 | Option         | Type      | Description                                  |
