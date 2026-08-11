@@ -4,9 +4,20 @@ import { TurboModuleRegistry } from 'react-native';
 export interface PrintTextOptions {
   text: string;
   productId: number;
-  size?: 1 | 2 | 4;
+  /**
+   * Multiplicador de tamanho do texto (largura e altura), de 1 (normal) a 8 (máximo).
+   * 8x é o teto real do comando ESC/POS `GS !`; valores maiores são limitados a 8.
+   */
+  size?: number;
   align?: 'left' | 'center' | 'right';
   encoding?: string;
+  /**
+   * Página de código ESC/POS (comando ESC t) a ser selecionada na impressora antes
+   * de enviar o texto, e usada para codificar os bytes corretamente. Use os valores
+   * de `codepages` (ex: `codepages.CP850`). Quando informado, tem prioridade sobre `encoding`.
+   * Consulte o manual da sua impressora para saber qual página ela suporta/espera.
+   */
+  codepage?: number;
   bold?: boolean;
   font?: 'A' | 'B' | 'C';
   cut?: boolean;

@@ -13,6 +13,17 @@ import com.facebook.react.bridge.WritableMap
 object UsbConnectionHelper {
     private const val TAG = "UsbConnectionHelper"
 
+    // A maioria dos mecanismos de corte fica alguns milímetros à frente do cabeçote de
+    // impressão. Cortar sem alimentar papel suficiente antes pode falhar silenciosamente
+    // (a lâmina não encontra papel na posição certa) ou cortar em cima do próprio texto.
+    private const val MIN_CUT_FEED_LINES = 3
+    private const val EXTRA_CUT_FEED_LINES = 5
+
+    // Tempo para o mecanismo de corte concluir o movimento antes de a conexão USB ser
+    // fechada. Fechar/liberar a interface enquanto a lâmina ainda está em movimento é a
+    // causa mais comum de corte intermitente ("às vezes não corta").
+    private const val CUT_MECHANISM_DELAY_MS = 300L
+
     data class ConnectionData(
         val connection: UsbDeviceConnection,
         val endpoint: UsbEndpoint,
@@ -159,6 +170,28 @@ object UsbConnectionHelper {
         } catch (e: Exception) {
             Log.e(TAG, "Error sending data chunks to thermal printer", e)
             return false
+        }
+    }
+
+    /**
+     * Adiciona ao buffer de comandos a alimentação de papel necessária para o corte seguir
+     * a lâmina, seguida do comando de corte total (GS V 0).
+     */
+    fun appendCutCommand(commands: MutableList<Byte>, extraFeed: Boolean = false) {
+        val feedLines = if (extraFeed) EXTRA_CUT_FEED_LINES else MIN_CUT_FEED_LINES
+        commands.addAll(listOf(0x1B, 0x64, feedLines.toByte()).map { it.toByte() }) // ESC d n
+        commands.addAll(listOf(0x1D, 0x56, 0x00).map { it.toByte() }) // GS V 0 (corte total)
+    }
+
+    /**
+     * Aguarda o mecanismo de corte concluir antes que a conexão USB seja fechada.
+     * Chamar após enviar com sucesso um comando que inclua o corte.
+     */
+    fun awaitCutMechanism() {
+        try {
+            Thread.sleep(CUT_MECHANISM_DELAY_MS)
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
         }
     }
 

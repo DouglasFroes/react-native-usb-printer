@@ -44,12 +44,17 @@ object UsbPrinterBarcodeHelper {
             Log.d(TAG, "Configurando fonte do texto HRI")
             commands.addAll(listOf(0x1D, 0x66, 0x00).map { it.toByte() }) // GS f (HRI font: A)
 
-            // Comando para imprimir código de barras CODE128
-            Log.d(TAG, "Iniciando impressão CODE128 com ${text.length} caracteres")
-            commands.addAll(listOf(0x1D, 0x6B, 0x49, text.length.toByte()).map { it.toByte() }) // GS k (CODE128)
+            // Dados do código de barras: CODE128 exige um prefixo de code-set ('{' + A/B/C)
+            // como os 2 primeiros bytes dos dados. Sem ele, muitas impressoras (incluem
+            // implementações mais estritas) não reconhecem o comando e não imprimem nada
+            // ou imprimem um código inválido/ilegível. Usamos Code Set B (ASCII imprimível).
+            val codeSetBPrefix = byteArrayOf(0x7B, 0x42) // '{' 'B'
+            val textBytes = text.toByteArray(Charsets.ISO_8859_1)
+            val dataLength = codeSetBPrefix.size + textBytes.size
 
-            // Dados do código de barras
-            val textBytes = text.toByteArray(Charsets.UTF_8)
+            Log.d(TAG, "Iniciando impressão CODE128 com ${text.length} caracteres")
+            commands.addAll(listOf(0x1D, 0x6B, 0x49, dataLength.toByte()).map { it.toByte() }) // GS k (CODE128)
+            commands.addAll(codeSetBPrefix.toList())
             commands.addAll(textBytes.toList())
 
             // Alimenta papel após o código de barras

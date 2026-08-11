@@ -25,21 +25,15 @@ object UsbPrinterCutHelper {
 
             val commands = mutableListOf<Byte>()
 
-            // Adiciona alimentação de papel se solicitado
-            if (tailingLine) {
-                Log.d(TAG, "Adicionando alimentação de papel")
-                commands.addAll(listOf(0x1B, 0x64, 0x05).map { it.toByte() }) // ESC d (feed lines)
-            }
-
             // Adiciona beep se solicitado
             if (beep) {
                 Log.d(TAG, "Adicionando comando de beep")
                 commands.addAll(listOf(0x1B, 0x42, 0x03, 0x01).map { it.toByte() }) // ESC B (beep)
             }
 
-            // Comando de corte
-            Log.d(TAG, "Adicionando comando de corte")
-            commands.addAll(listOf(0x1D, 0x56, 0x00).map { it.toByte() }) // GS V (full cut)
+            // Alimenta papel suficiente e adiciona o comando de corte
+            Log.d(TAG, "Adicionando alimentação de papel e comando de corte")
+            UsbConnectionHelper.appendCutCommand(commands, extraFeed = tailingLine)
 
             Log.i(TAG, "Enviando ${commands.size} bytes para operação de corte")
             val success = UsbConnectionHelper.sendDataInChunks(
@@ -49,6 +43,7 @@ object UsbPrinterCutHelper {
             )
 
             return if (success) {
+                UsbConnectionHelper.awaitCutMechanism()
                 UsbConnectionHelper.createSuccessResponse("Corte realizado com sucesso")
             } else {
                 UsbConnectionHelper.createErrorResponse("Falha ao enviar comando de corte")

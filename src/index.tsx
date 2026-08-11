@@ -1,5 +1,6 @@
 import UsbPrinter, { type PrintTextOptions } from './NativeUsbPrinter';
 import { textTo64Buffer } from './utils/textTo64Buffer';
+export { codepages } from './utils/commands';
 export type { PrinterResult, UsbDeviceInfo } from './NativeUsbPrinter';
 
 export function getList(): import('./NativeUsbPrinter').UsbDeviceInfo[] {

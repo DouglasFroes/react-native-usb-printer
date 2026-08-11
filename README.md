@@ -37,12 +37,45 @@ await printText({
   bold: true,
   underline: true,
   font: 'A', // 'A' | 'B' | 'C'
-  size: 2, // 1 (normal), 2 (2x), 4 (4x)
+  size: 2, // 1 (normal) to 8 (8x) — hardware ceiling of the ESC/POS `GS !` command
   cut: true, // cut paper after print
   beep: true, // beep after print
   tailingLine: true, // add blank lines at end
 });
 ```
+
+#### Configuring the codepage for your specific printer
+
+Different thermal printers default to different ESC/POS character tables, so accented
+characters (á, ç, ã...) can print as garbage if the wrong table is assumed. Instead of
+guessing, pass `codepage` with the exact table your printer uses — it takes priority
+over `encoding`, sends the `ESC t` select-codepage command to the printer, and encodes
+the text with the matching charset:
+
+```js
+import { printText, codepages } from 'react-native-printer-usb';
+
+await printText({
+  text: 'Olá, mundo! Çãõé',
+  productId,
+  codepage: codepages.CP850, // or codepages.PC860, codepages.WPC1252, ...
+});
+```
+
+| Constant          | Value | Table                      |
+| ------------------ | ----- | --------------------------- |
+| `codepages.PC437`  | 0     | USA: Standard Europe        |
+| `codepages.CP850`  | 2     | Multilingual                |
+| `codepages.PC860`  | 3     | Portuguese                  |
+| `codepages.PC863`  | 4     | Canadian-French              |
+| `codepages.PC865`  | 5     | Nordic                       |
+| `codepages.WPC1252`| 16    | Windows-1252                 |
+| `codepages.PC866`  | 17    | Cyrillic #2                  |
+| `codepages.PC852`  | 18    | Latin 2                      |
+| `codepages.PC858`  | 19    | Multilingual + Euro          |
+
+Check your printer's manual for the codepage it supports — for Brazilian ESC/POS
+printers (Gertec, Bematech, Elgin, Daruma, etc.) this is usually `CP850` or `PC860`.
 
 ### Print Image (Base64 or URL)
 ```js
@@ -111,10 +144,11 @@ const success = await clearErrorLogs();
 | productId      | number    | USB Product ID (required)                    |
 | align          | string    | 'left', 'center', 'right'                    |
 | encoding       | string    | 'utf8', 'CP850', 'ISO-8859-1', etc.          |
+| codepage       | number    | ESC t codepage number (see `codepages`); overrides `encoding` |
 | bold           | boolean   | Bold text                                    |
 | underline      | boolean   | Underline text                               |
 | font           | string    | 'A', 'B', 'C'                                |
-| size           | number    | 1 (normal), 2 (2x), 4 (4x)                   |
+| size           | number    | 1 (normal) to 8 (8x); values above 8 are clamped to 8 |
 | cut            | boolean   | Cut paper after print                        |
 | beep           | boolean   | Beep after print                             |
 | tailingLine    | boolean   | Add blank lines at end                       |

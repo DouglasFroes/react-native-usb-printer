@@ -157,6 +157,33 @@ export const text_format = {
 };
 
 /**
+ * Códigos de página ESC/POS (comando ESC t), conforme a tabela padrão Epson usada
+ * pela maioria dos clones ESC/POS (Gertec, Bematech, Elgin, Daruma, etc.).
+ * Use com a opção `codepage` de `printText` para garantir a codificação correta de
+ * acentos conforme a página suportada pela sua impressora.
+ */
+export const codepages = {
+  /** PC437 [USA: Standard Europe] */
+  PC437: 0,
+  /** PC850 [Multilingual] */
+  CP850: 2,
+  /** PC860 [Portuguese] */
+  PC860: 3,
+  /** PC863 [Canadian-French] */
+  PC863: 4,
+  /** PC865 [Nordic] */
+  PC865: 5,
+  /** WPC1252 (Windows-1252) */
+  WPC1252: 16,
+  /** PC866 [Cyrillic #2] */
+  PC866: 17,
+  /** PC852 [Latin 2] */
+  PC852: 18,
+  /** PC858 */
+  PC858: 19,
+} as const;
+
+/**
  * Main ESC/POS command set, including all helpers and control codes.
  */
 export const commands = {
